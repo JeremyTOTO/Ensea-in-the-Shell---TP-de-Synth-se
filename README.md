@@ -1,4 +1,4 @@
-# Ensea-in-the-Shell---TP-de-Synth-se
+# Ensea-in-the-Shell---TP-de-Synthese
 Travaux liés aux TP de Synthèse à l'ENSEA.
 
 Groupe : Artsrun SARGSYAN, Jérémy TOTO;
