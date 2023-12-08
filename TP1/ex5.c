@@ -4,9 +4,10 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/wait.h>
+#include <time.h>
 
 #define MAX_COMMAND_LENGTH 1024
-#define PROMPT "enseash [exit:%d] %% "
+#define PROMPT "enseash [exit:%d|%ldms] %% "
 
 int main() {
     int status;
@@ -22,9 +23,11 @@ int main() {
     write(STDOUT_FILENO, exit_message, strlen(exit_message));
     
     while (1) {
+        struct timespec start, end;
         
         pid_t pid = fork();
         waitpid(pid, &status, 0);
+        clock_gettime(CLOCK_MONOTONIC, &start);
 
         char prompt[MAX_COMMAND_LENGTH];
         write(STDOUT_FILENO, prompt, strlen(prompt));
@@ -33,11 +36,14 @@ int main() {
         command[strcspn(command, "\n")] = 0;
 
         if ((strcmp(command, "exit") == 0) || feof(stdin)) {
-			// Display exit message
+			// Display exit message and calculate execution time
             write(STDOUT_FILENO, exit_bye, strlen(exit_bye));
             waitpid(pid, &status, 0);
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            long exec_time = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_nsec - start.tv_nsec) / 1000000;
+            exec_time = exec_time / 100;
 			char prompt[MAX_COMMAND_LENGTH];
-            sprintf(prompt, PROMPT, WEXITSTATUS(status));
+            sprintf(prompt, PROMPT, WEXITSTATUS(status), exec_time);
              write(STDOUT_FILENO, prompt, strlen(prompt));
             break;
         } else if (strcmp(command, "fortune") == 0) {
@@ -45,16 +51,21 @@ int main() {
             if (pid == 0) {
                 execvp(fortune_args[0], fortune_args);                 
                 waitpid(pid, &status, 0);
+				clock_gettime(CLOCK_MONOTONIC, &end);
+				long exec_time = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_nsec - start.tv_nsec) / 1000000;
 				char prompt[MAX_COMMAND_LENGTH];
-				sprintf(prompt, PROMPT, WEXITSTATUS(status));
+				sprintf(prompt, PROMPT, WEXITSTATUS(status), exec_time);
 				write(STDOUT_FILENO, prompt, strlen(prompt));
             }
         } else {
             // Display error message and prompt
             write(STDOUT_FILENO, error_message, strlen(error_message));
             waitpid(pid, &status, 0);
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            long exec_time = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_nsec - start.tv_nsec) / 1000000;
+            exec_time = exec_time / 100;
             char prompt[MAX_COMMAND_LENGTH];
-            sprintf(prompt, PROMPT, WEXITSTATUS(status));
+            sprintf(prompt, PROMPT, WEXITSTATUS(status), exec_time);
             write(STDOUT_FILENO, prompt, strlen(prompt));
         }
     }

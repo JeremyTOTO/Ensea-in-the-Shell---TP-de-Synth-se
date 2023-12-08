@@ -11,7 +11,8 @@ int main() {
     char exit_message[] = "Pour quitter, tapez 'exit'.\n";
     char prompt[] = "enseash %% ";
     char error_message[] = "error_message \n";
-
+   
+    // Display welcome and exit messages
     write(STDOUT_FILENO, welcome_message, strlen(welcome_message));
     write(STDOUT_FILENO, exit_message, strlen(exit_message));
 
@@ -24,6 +25,7 @@ int main() {
         if (strcmp(command, "exit") == 0) {
             break;
         } else {
+			// Display error message
             write(STDOUT_FILENO, error_message, strlen(error_message));
         }
     }
